@@ -11,6 +11,10 @@ public class commandlineintepreter {
         currentDirectory = new File(System.getProperty("user.dir"));
     }
 
+    public void setCurrentDirectory(File directory) {
+        this.currentDirectory = directory;
+    }
+
     public void help() {
         System.out.println("Available commands:");
         System.out.println("pwd - Print working directory");
