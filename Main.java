@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.Scanner;
 
 
@@ -25,6 +26,7 @@ public class Main {
                     }
                     break;
                 case "ls":
+                    cli.ls(parts); //pass the argument
                     break;
                 case "mkdir":
                     break;

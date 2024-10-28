@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class commandlineintepreter {
@@ -46,16 +47,43 @@ public class commandlineintepreter {
         }
     }
 
-    public void ls() {
-        //
-    }
+    public void ls(String... options) {
+        File[] files = currentDirectory.listFiles();
+        boolean showHidden = false;
+        boolean reverse = false;
 
-    public void ls_a() {
-        //
-    }
+        // Check for options
+        for (String option : options) {
+            if ("-a".equals(option)) {
+                showHidden = true;
+            } else if ("-r".equals(option)) {
+                reverse = true;
+            }
+        }
 
-    public void ls_r() {
-        //
+        if (files != null) {
+            // Filter files based on visibility
+            if (!showHidden) {
+                files = Arrays.stream(files).filter(file -> !file.isHidden()).toArray(File[]::new);
+            }
+
+            // Sort files
+            boolean finalReverse = reverse;
+            Arrays.sort(files, (f1, f2) -> {
+                if (finalReverse) {
+                    return f2.getName().compareTo(f1.getName());
+                } else {
+                    return f1.getName().compareTo(f2.getName());
+                }
+            });
+
+            // Print the file names
+            for (File file : files) {
+                System.out.println(file.getName());
+            }
+        } else {
+            System.out.println("Error reading directory");
+        }
     }
 
     public void mkdir(String dir) {
