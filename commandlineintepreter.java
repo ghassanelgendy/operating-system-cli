@@ -18,6 +18,10 @@ public class commandlineintepreter {
     public void setCurrentDirectory(File directory) {
         this.currentDirectory = directory;
     }
+    public File getCurrentDirectory() {
+        return currentDirectory;
+    }
+
 
     public void help() {
         System.out.println(""" 

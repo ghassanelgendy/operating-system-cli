@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class commandlineintepreterTest {
     private commandlineintepreter cli;
     private File testDirectory;
-    //abl kol test
+       //abl kol test
     @BeforeEach
     void setUp() throws IOException {
         // awel haga ne3ml folder eltesting
@@ -73,6 +73,67 @@ class commandlineintepreterTest {
 
         assertTrue(Arrays.asList(actualFiles).containsAll(expectedFiles),
                 "Output should include all expected files, including hidden ones");
+    }
+
+    @Test
+    void testPwd() {
+        String expectedPath = testDirectory.getAbsolutePath();
+        assertEquals(expectedPath, cli.getCurrentDirectory().getAbsolutePath(),
+                "pwd should return the current directory path");
+    }
+
+    @Test
+    void testCdValidDirectory() throws IOException {
+        File subDirectory = new File(testDirectory, "subDir");
+        subDirectory.mkdir();
+        cli.cd("subDir");
+
+        assertEquals(subDirectory.getCanonicalPath(), cli.getCurrentDirectory().getCanonicalPath(),
+                "cd should change to subDir ");
+    }
+
+    @Test
+    void testCdInvalidDirectory() {
+        cli.cd("nonExistentDir");
+        assertEquals(testDirectory.getAbsolutePath(), cli.getCurrentDirectory().getAbsolutePath(),
+                "cd should not change directory ");
+    }
+
+    @Test
+    void testMvFile() throws IOException {
+        File sourceFile = new File(testDirectory, "file1.txt");
+        File destinationFile = new File(testDirectory, "movedFile.txt");
+
+        cli.mv("file1.txt", "movedFile.txt");
+
+        assertFalse(sourceFile.exists(), "Original file should no longer exist after mv");
+        assertTrue(destinationFile.exists(), "Destination file should exist after mv");
+    }
+
+    @Test
+    void testMvToDirectory() throws IOException {
+        File sourceFile = new File(testDirectory, "file1.txt");
+        File destDir = new File(testDirectory, "destDir");
+        destDir.mkdir();
+
+        cli.mv("file1.txt", "destDir");
+
+        File movedFile = new File(destDir, "file1.txt");
+
+        assertTrue(movedFile.exists(), "File should be moved into the destination directory");
+    }
+    @Test
+    void testRedirectOutputToFile() throws IOException {
+        String outputFileName = "output.txt";
+        File outputFile = new File(testDirectory, outputFileName);
+
+        cli.redirectOutput(outputFileName);
+        System.out.println("Redirected output test");
+        cli.resetOutput();
+
+        String fileContent = Files.readString(outputFile.toPath()).trim();
+        assertEquals("Redirected output test", fileContent,
+                "Output should be redirected to the specified file");
     }
 }
 
