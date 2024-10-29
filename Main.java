@@ -11,8 +11,20 @@ public class Main {
         while (true) {
             System.out.print("> ");
             String input = scanner.nextLine();
+
+            //3shan law el inout fyh > aw >> aw |
+            String[] redirectionParts = input.split(">"); //by2sm el input 3la asas el >
+            //3shan lawa el input command b argument yt2asem sah
+            String commandInput = redirectionParts[0].trim();
+            String outputFile = redirectionParts.length > 1 ? redirectionParts[1].trim() : null;
+
+
             String[] parts = input.split(" "); //ba7ot el input f array mt2asem bel spaces 3shan law arguements b3d el command
             String command = parts[0];
+
+            if (outputFile != null) {
+                cli.redirectOutput(outputFile);
+            }
 
             switch (command) {
                 case "pwd":
@@ -54,6 +66,9 @@ public class Main {
                     return;
                 default:
                     System.out.println("Unknown command: " + command);
+            }
+            if (outputFile != null) {
+                cli.resetOutput(); // Reset System.out to console after command
             }
         }
     }

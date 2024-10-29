@@ -1,15 +1,18 @@
 import java.io.File;
 import java.io.IOException;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Scanner;
+
 
 public class commandlineintepreter {
     private File currentDirectory;
+    private PrintStream originalOut;
 
     public commandlineintepreter() {
         currentDirectory = new File(System.getProperty("user.dir"));
+        originalOut = System.out;
     }
 
     public void setCurrentDirectory(File directory) {
@@ -27,6 +30,9 @@ public class commandlineintepreter {
                 touch <file> - Create empty file
                 mv <source> <destination> - Move/rename file
                 cat <file> - Show file contents
+                > <file> - Redirect output to file
+                >> <file> - Append output to file
+                | <command> - Pipe output to another command
                 help - Show this help
                 exit - Exit CLI
                 """);
@@ -138,9 +144,25 @@ public class commandlineintepreter {
     }
 
     public void redirectOutput(String file) {
+        File outputFile = new File(currentDirectory, file);
 
+        try {
+            PrintStream fileOut = new PrintStream(new FileOutputStream(outputFile, false)); // 3shan a-overwrite
+            System.out.println("Output redirected to " + outputFile.getAbsolutePath());
+            System.setOut(fileOut);  // bn2l el output fel file
 
+        } catch (IOException e) {
+            System.out.println("redirectOutput: Unable to write to " + file + " - " + e.getMessage());
+        }
     }
+
+    // Reset System.out to the console
+    public void resetOutput() {
+        System.out.flush();
+        System.setOut(originalOut);  // brg3 og system.out lel console
+    }
+
+
 
     public void appendOutput(String file) {
         // Used for >>
