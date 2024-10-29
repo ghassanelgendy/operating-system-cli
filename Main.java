@@ -5,7 +5,6 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         commandlineintepreter cli = new commandlineintepreter();
-        CommandLineInterpreterTest JUnit = new CommandLineInterpreterTest();
         Scanner scanner = new Scanner(System.in); // object el cin bta3t java
         System.out.println("Welcome to the CLI. Type 'help' for available commands.");
 
@@ -27,7 +26,7 @@ public class Main {
                     }
                     break;
                 case "ls":
-                    cli.ls(parts); //pass the argument
+                    cli.ls(parts); //bab3at le ls func. - handling the options there
                     break;
                 case "mkdir":
                     break;
