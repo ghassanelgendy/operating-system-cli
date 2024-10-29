@@ -1,6 +1,6 @@
 import java.util.Arrays;
 import java.util.Scanner;
-
+import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
@@ -45,6 +45,7 @@ public class Main {
                 case "rmdir":
                     break;
                 case "touch":
+                    cli.touch(parts[1]);
                     break;
                 case "mv":
                     if (parts.length < 3) {
@@ -56,6 +57,7 @@ public class Main {
                     }
                     break;
                 case "cat":
+                    cli.cat(parts);
                     break;
                 case "help":
                     cli.help();

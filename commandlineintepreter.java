@@ -1,9 +1,10 @@
-import java.io.File;
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
+import java.util.Scanner;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 public class commandlineintepreter {
@@ -113,8 +114,17 @@ public class commandlineintepreter {
         //
     }
 
-    public void touch(String file) {
-        //
+    public void touch(String filename) {
+        File file = new File(filename);
+        try {
+            if (file.createNewFile()) {
+                System.out.println("File created: " + filename);
+            } else {
+                System.out.println("File already exists: " + filename);
+            }
+        } catch (IOException e) {
+            System.out.println("Error creating file: " + e.getMessage());
+        }
     }
 
     public void mv(String source, String destination) {
@@ -143,8 +153,127 @@ public class commandlineintepreter {
         //
     }
 
-    public void cat(String file) {
-        //
+    public void cat( String[] cmnd ) {
+        if (cmnd.length == 1){
+            System.out.println("cat: Missing argument");
+        }
+        else if(cmnd.length == 2){
+            String filename = cmnd[1];
+            File file = new File(filename);
+            if (file.exists()){
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    int data;
+                    while ((data = fis.read()) != -1) {
+                        System.out.print((char) data);
+                    }
+                    System.out.println();
+                }
+                catch (IOException e) {
+                    System.out.println("Error reading file: " + e.getMessage());
+                }
+            }
+            else{
+                System.out.println("cat: " + filename + " No such file or directory");
+            }
+        }
+        else if (cmnd.length == 3){
+            if (Objects.equals(cmnd[1], "-n")) {
+                String filename = cmnd[2];
+                File file = new File(filename);
+                if (file.exists()) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                        String line;
+                        int lineNumber = 1;
+                        while ((line = br.readLine()) != null) {
+                            System.out.println(lineNumber++ + " " + line);
+                        }
+                    } catch (IOException e) {
+                        System.out.println("Error reading file: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("cat: " + filename + ": No such file or directory");
+                }
+            }
+            else if (Objects.equals(cmnd[1], ">>")){
+                String filename = cmnd[2];
+                File file = new File(filename);
+                if (file.exists()){
+                    try (FileOutputStream fos = new FileOutputStream(file, true)) {
+                        System.out.println("Enter text to append (press Ctrl+D to finish):");
+                        Scanner scanner = new Scanner(System.in);
+                        while (scanner.hasNextLine()) {
+                            String line = scanner.nextLine();
+                            fos.write(line.getBytes());
+                            fos.write('\n');
+                        }
+                    }
+                    catch (IOException e) {
+                        System.out.println("Error writing to file: " + e.getMessage());
+                    }
+                }
+            }
+            else if(Objects.equals(cmnd[1], ">")){
+                String filename = cmnd[2];
+                File file = new File(filename);
+                try {
+                    if (file.createNewFile()) {
+                        System.out.println("File created: " + filename);
+                    } else {
+                        System.out.println("File already exists: " + filename);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error creating file: " + e.getMessage());
+                }
+            }
+            else{
+                String firstname = cmnd[1], secondname = cmnd[2];
+                String com = "cat " + firstname;
+                String com2 = "cat " + secondname;
+                cat(com.split(" "));
+                cat(com2.split(" "));
+            }
+
+        }
+        else if(cmnd.length == 5){
+            if(Objects.equals(cmnd[3], ">")){
+            String firstname = cmnd[1], secondname = cmnd[2], thirdname = cmnd[4];
+            File file1 = new File(firstname), file2 = new File(secondname), file3 = new File(thirdname);
+            if (file1.exists() && file2.exists() && file3.exists()){
+                try(FileOutputStream fos = new FileOutputStream((file3))){
+                    try(FileInputStream fis1 = new FileInputStream(file1)){
+                        int data;
+                        while ((data = fis1.read()) != -1) {
+                            fos.write(data);
+                        }
+                        fos.write('\n');
+                    }
+                    try(FileInputStream fis2 = new FileInputStream(file2)){
+                        int data;
+                        while ((data = fis2.read()) != -1) {
+                            fos.write(data);
+                        }
+                    }
+                    catch (IOException e) {
+                        System.out.println("Error reading file: " + e.getMessage());
+                    }
+                }
+                catch (IOException e) {
+                    System.out.println("Error writing file: " + e.getMessage());
+                }
+            }
+            else{
+                if (!file1.exists())
+                    System.out.println("cat: " + firstname + " No such file or directory");
+                if (!file2.exists())
+                    System.out.println("cat: " + secondname + " No such file or directory");
+                if(!file3.exists())
+                    System.out.println("cat: " + thirdname + " No such file or directory");
+            }
+            }
+            else{
+                System.out.println("cat: Invalid command");
+            }
+        }
     }
 
     public void redirectOutput(String file) {
