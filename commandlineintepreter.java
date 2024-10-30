@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
 
-
 public class commandlineintepreter {
     private File currentDirectory;
     private PrintStream originalOut;
@@ -23,9 +22,8 @@ public class commandlineintepreter {
         return currentDirectory;
     }
 
-
     public void help() {
-        System.out.println(""" 
+        System.out.println("""
                 Available commands:
                 pwd - Print working directory
                 cd <dir> - Change directory
@@ -52,11 +50,11 @@ public class commandlineintepreter {
     }
 
     public void cd(String dir) {
-        File newDir = new File(currentDirectory, dir);// el file ely hanmashwaro m3ana
+        File newDir = new File(currentDirectory, dir);
 
         if (newDir.exists() && newDir.isDirectory()) {
             try {
-                currentDirectory = newDir.getCanonicalFile(); //btgeeb absolute path thoto fyh
+                currentDirectory = newDir.getCanonicalFile();
                 System.out.println("Changed directory to " + currentDirectory.getAbsolutePath());
             } catch (IOException e) {
                 System.out.println("cd: " + e.getMessage());
@@ -71,7 +69,6 @@ public class commandlineintepreter {
         boolean showHidden = false;
         boolean reverse = false;
 
-        // bashof mab3ota be options eh
         for (String option : options) {
             if ("-a".equals(option)) {
                 showHidden = true;
@@ -81,13 +78,10 @@ public class commandlineintepreter {
         }
 
         if (files != null) {
-            // bacheck elhidden
             if (!showHidden) {
-                //ba3mlo stream 3shan afilter 3la hassab elhidden
                 files = Arrays.stream(files).filter(file -> !file.isHidden()).toArray(File[]::new);
             }
 
-            // Sort files
             boolean finalReverse = reverse;
             Arrays.sort(files, (f1, f2) -> {
                 if (finalReverse) {
@@ -97,7 +91,6 @@ public class commandlineintepreter {
                 }
             });
 
-            // Print the file names
             for (File file : files) {
                 System.out.println(file.getName());
             }
@@ -107,11 +100,42 @@ public class commandlineintepreter {
     }
 
     public void mkdir(String dir) {
-        //
+        File newDir = new File(currentDirectory, dir);
+        if (newDir.mkdir()) {
+            System.out.println("Directory created: " + newDir.getAbsolutePath());
+        } else {
+            System.out.println("mkdir: " + dir + ": Failed to create directory or directory already exists");
+        }
     }
 
     public void rmdir(String dir) {
-        //
+        File dirToRemove = new File(currentDirectory, dir);
+        if (dirToRemove.exists() && dirToRemove.isDirectory()) {
+            if (dirToRemove.list().length == 0) {
+                if (dirToRemove.delete()) {
+                    System.out.println("Directory removed: " + dirToRemove.getAbsolutePath());
+                } else {
+                    System.out.println("rmdir: " + dir + ": Failed to remove directory");
+                }
+            } else {
+                System.out.println("rmdir: " + dir + ": Directory not empty");
+            }
+        } else {
+            System.out.println("rmdir: " + dir + ": No such directory");
+        }
+    }
+
+    public void rm(String file) {
+        File fileToRemove = new File(currentDirectory, file);
+        if (fileToRemove.exists()) {
+            if (fileToRemove.delete()) {
+                System.out.println("File removed: " + fileToRemove.getAbsolutePath());
+            } else {
+                System.out.println("rm: " + file + ": Failed to remove file");
+            }
+        } else {
+            System.out.println("rm: " + file + ": No such file");
+        }
     }
 
     public void touch(String filename) {
@@ -135,12 +159,10 @@ public class commandlineintepreter {
             return;
         }
 
-
         File destinationFile = new File(currentDirectory, destination);
 
-
         if (destinationFile.isDirectory()) {
-            destinationFile = new File(destinationFile, sourceFile.getName()); // eza kan el destination dy directory mesh file ermyh gowaha
+            destinationFile = new File(destinationFile, sourceFile.getName());
         }
         if (sourceFile.renameTo(destinationFile)) {
             System.out.println("Moved/Renamed " + source + " to " + destinationFile.getPath());
@@ -149,34 +171,26 @@ public class commandlineintepreter {
         }
     }
 
-    public void rm(String file) {
-        //
-    }
-
-    public void cat( String[] cmnd ) {
-        if (cmnd.length == 1){
+    public void cat(String[] cmnd) {
+        if (cmnd.length == 1) {
             System.out.println("cat: Missing argument");
-        }
-        else if(cmnd.length == 2){
+        } else if (cmnd.length == 2) {
             String filename = cmnd[1];
             File file = new File(currentDirectory, filename);
-            if (file.exists()){
+            if (file.exists()) {
                 try (FileInputStream fis = new FileInputStream(file)) {
                     int data;
                     while ((data = fis.read()) != -1) {
                         System.out.print((char) data);
                     }
                     System.out.println();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     System.out.println("Error reading file: " + e.getMessage());
                 }
-            }
-            else{
+            } else {
                 System.out.println("cat: " + filename + " No such file or directory");
             }
-        }
-        else if (cmnd.length == 3){
+        } else if (cmnd.length == 3) {
             if (Objects.equals(cmnd[1], "-n")) {
                 String filename = cmnd[2];
                 File file = new File(currentDirectory, filename);
@@ -193,11 +207,10 @@ public class commandlineintepreter {
                 } else {
                     System.out.println("cat: " + filename + ": No such file or directory");
                 }
-            }
-            else if (Objects.equals(cmnd[1], ">>")){
+            } else if (Objects.equals(cmnd[1], ">>")) {
                 String filename = cmnd[2];
                 File file = new File(currentDirectory, filename);
-                if (file.exists()){
+                if (file.exists()) {
                     try (FileOutputStream fos = new FileOutputStream(file, true)) {
                         System.out.println("Enter text to append (press Ctrl+D to finish):");
                         Scanner scanner = new Scanner(System.in);
@@ -206,13 +219,11 @@ public class commandlineintepreter {
                             fos.write(line.getBytes());
                             fos.write('\n');
                         }
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         System.out.println("Error writing to file: " + e.getMessage());
                     }
                 }
-            }
-            else if(Objects.equals(cmnd[1], ">")){
+            } else if (Objects.equals(cmnd[1], ">")) {
                 String filename = cmnd[2];
                 File file = new File(currentDirectory, filename);
                 try {
@@ -224,53 +235,48 @@ public class commandlineintepreter {
                 } catch (IOException e) {
                     System.out.println("Error creating file: " + e.getMessage());
                 }
-            }
-            else{
+            } else {
                 String firstname = cmnd[1], secondname = cmnd[2];
                 String com = "cat " + firstname;
                 String com2 = "cat " + secondname;
                 cat(com.split(" "));
                 cat(com2.split(" "));
             }
-
-        }
-        else if(cmnd.length == 5){
-            if(Objects.equals(cmnd[3], ">")){
-            String firstname = cmnd[1], secondname = cmnd[2], thirdname = cmnd[4];
-            File file1 = new File(currentDirectory,firstname), file2 = new File(currentDirectory, secondname), file3 = new File(currentDirectory, thirdname);
-            if (file1.exists() && file2.exists() && file3.exists()){
-                try(FileOutputStream fos = new FileOutputStream((file3))){
-                    try(FileInputStream fis1 = new FileInputStream(file1)){
-                        int data;
-                        while ((data = fis1.read()) != -1) {
-                            fos.write(data);
+        } else if (cmnd.length == 5) {
+            if (Objects.equals(cmnd[3], ">")) {
+                String firstname = cmnd[1], secondname = cmnd[2], thirdname = cmnd[4];
+                File file1 = new File(currentDirectory, firstname),
+                        file2 = new File(currentDirectory, secondname),
+                        file3 = new File(currentDirectory, thirdname);
+                if (file1.exists() && file2.exists() && file3.exists()) {
+                    try (FileOutputStream fos = new FileOutputStream(file3)) {
+                        try (FileInputStream fis1 = new FileInputStream(file1)) {
+                            int data;
+                            while ((data = fis1.read()) != -1) {
+                                fos.write(data);
+                            }
+                            fos.write('\n');
                         }
-                        fos.write('\n');
-                    }
-                    try(FileInputStream fis2 = new FileInputStream(file2)){
-                        int data;
-                        while ((data = fis2.read()) != -1) {
-                            fos.write(data);
+                        try (FileInputStream fis2 = new FileInputStream(file2)) {
+                            int data;
+                            while ((data = fis2.read()) != -1) {
+                                fos.write(data);
+                            }
+                        } catch (IOException e) {
+                            System.out.println("Error reading file: " + e.getMessage());
                         }
+                    } catch (IOException e) {
+                        System.out.println("Error writing file: " + e.getMessage());
                     }
-                    catch (IOException e) {
-                        System.out.println("Error reading file: " + e.getMessage());
-                    }
+                } else {
+                    if (!file1.exists())
+                        System.out.println("cat: " + firstname + " No such file or directory");
+                    if (!file2.exists())
+                        System.out.println("cat: " + secondname + " No such file or directory");
+                    if (!file3.exists())
+                        System.out.println("cat: " + thirdname + " No such file or directory");
                 }
-                catch (IOException e) {
-                    System.out.println("Error writing file: " + e.getMessage());
-                }
-            }
-            else{
-                if (!file1.exists())
-                    System.out.println("cat: " + firstname + " No such file or directory");
-                if (!file2.exists())
-                    System.out.println("cat: " + secondname + " No such file or directory");
-                if(!file3.exists())
-                    System.out.println("cat: " + thirdname + " No such file or directory");
-            }
-            }
-            else{
+            } else {
                 System.out.println("cat: Invalid command");
             }
         }
@@ -280,9 +286,9 @@ public class commandlineintepreter {
         File outputFile = new File(currentDirectory, file);
 
         try {
-            PrintStream fileOut = new PrintStream(new FileOutputStream(outputFile, false)); // 3shan a-overwrite
+            PrintStream fileOut = new PrintStream(new FileOutputStream(outputFile, false));
             System.out.println("Output redirected to " + outputFile.getAbsolutePath());
-            System.setOut(fileOut);  // bn2l el output fel file
+            System.setOut(fileOut);
 
         } catch (IOException e) {
             System.out.println("redirectOutput: Unable to write to " + file + " - " + e.getMessage());
@@ -292,21 +298,15 @@ public class commandlineintepreter {
     // Reset System.out to the console
     public void resetOutput() {
         System.out.flush();
-        System.setOut(originalOut);  // brg3 og system.out lel console
+        System.setOut(originalOut);
     }
 
-
-
     public void appendOutput(String file) {
-        // Used for >>
         File outputFile = new File(currentDirectory, file);
 
         try {
-            // Open file in append mode
             PrintStream fileOut = new PrintStream(new FileOutputStream(outputFile, true));
             System.out.println("Appending output to " + outputFile.getAbsolutePath());
-
-            // Redirect System.out to file for appending
             System.setOut(fileOut);
         } catch (IOException e) {
             System.out.println("appendOutput: Unable to append to " + file + " - " + e.getMessage());
@@ -314,6 +314,23 @@ public class commandlineintepreter {
     }
 
     public void pipe(String command) {
-        // Used for |
+        String[] parts = command.split(" ");
+        if (parts.length < 1) {
+            System.out.println("pipe: Invalid command");
+            return;
+        }
+
+        String commandToExecute = parts[0];
+        try {
+            Process process = Runtime.getRuntime().exec(commandToExecute);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            process.waitFor();
+        } catch (IOException | InterruptedException e) {
+            System.out.println("pipe: " + e.getMessage());
+        }
     }
 }

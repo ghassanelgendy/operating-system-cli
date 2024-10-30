@@ -5,70 +5,98 @@ import java.io.File;
 public class Main {
     public static void main(String[] args) {
         commandlineintepreter cli = new commandlineintepreter();
-        Scanner scanner = new Scanner(System.in); // object el cin bta3t java
+        Scanner scanner = new Scanner(System.in);
         System.out.println("Welcome to the CLI. Type 'help' for available commands.");
 
         while (true) {
             System.out.print("> ");
             String input = scanner.nextLine();
 
-            //3shan law el inout fyh > aw >> aw |
-            String[] redirectionParts = input.split(">"); //by2sm el input 3la asas el >
-            //3shan lawa el input command b argument yt2asem sah
+            // Handle redirection and piping
+            String[] redirectionParts = input.split(">");
             String commandInput = redirectionParts[0].trim();
             String outputFile = redirectionParts.length > 1 ? redirectionParts[1].trim() : null;
 
-
-            String[] parts = input.split(" "); //ba7ot el input f array mt2asem bel spaces 3shan law arguements b3d el command
+            // Handle piping
+            String[] pipeParts = commandInput.split("\\|");
+            String commandWithArgs = pipeParts[0].trim();
+            String[] parts = commandWithArgs.split(" ");
             String command = parts[0];
 
             if (outputFile != null) {
                 cli.redirectOutput(outputFile);
             }
 
-            switch (command) {
-                case "pwd":
-                    cli.pwd();
-                    break;
-                case "cd":
-                    if (parts.length < 2) {
-                        System.out.println("cd: missing argument");
-                    } else {
-                        cli.cd(parts[1]);
-                    }
-                    break;
-                case "ls":
-                    cli.ls(parts); //bab3at le ls func. - handling the options there
-                    break;
-                case "mkdir":
-                    break;
-                case "rmdir":
-                    break;
-                case "touch":
-                    cli.touch(parts[1]);
-                    break;
-                case "mv":
-                    if (parts.length < 3) {
-                        System.out.println("mv: missing source or destination argument");
-                    } else {
-                        String source = parts[1];
-                        String destination = parts[2];
-                        cli.mv(source, destination);
-                    }
-                    break;
-                case "cat":
-                    cli.cat(parts);
-                    break;
-                case "help":
-                    cli.help();
-                    break;
-                case "exit":
-                    cli.exit();
-                    scanner.close();
-                    return;
-                default:
-                    System.out.println("Unknown command: " + command);
+            // Process each command part in case of piping
+            for (String cmd : pipeParts) {
+                String trimmedCmd = cmd.trim();
+                String[] cmdParts = trimmedCmd.split(" ");
+                String cmdName = cmdParts[0];
+
+                switch (cmdName) {
+                    case "pwd":
+                        cli.pwd();
+                        break;
+                    case "cd":
+                        if (cmdParts.length < 2) {
+                            System.out.println("cd: missing argument");
+                        } else {
+                            cli.cd(cmdParts[1]);
+                        }
+                        break;
+                    case "ls":
+                        cli.ls(Arrays.copyOfRange(cmdParts, 1, cmdParts.length));
+                        break;
+                    case "mkdir":
+                        if (cmdParts.length < 2) {
+                            System.out.println("mkdir: missing directory name");
+                        } else {
+                            cli.mkdir(cmdParts[1]);
+                        }
+                        break;
+                    case "rmdir":
+                        if (cmdParts.length < 2) {
+                            System.out.println("rmdir: missing directory name");
+                        } else {
+                            cli.rmdir(cmdParts[1]);
+                        }
+                        break;
+                    case "touch":
+                        if (cmdParts.length < 2) {
+                            System.out.println("touch: missing filename");
+                        } else {
+                            cli.touch(cmdParts[1]);
+                        }
+                        break;
+                    case "mv":
+                        if (cmdParts.length < 3) {
+                            System.out.println("mv: missing source or destination argument");
+                        } else {
+                            cli.mv(cmdParts[1], cmdParts[2]);
+                        }
+                        break;
+                    case "rm":
+                        if (cmdParts.length < 2) {
+                            System.out.println("rm: missing filename");
+                        } else {
+                            cli.rm(cmdParts[1]);
+                        }
+                        break;
+                    case "cat":
+                        cli.cat(cmdParts);
+                        break;
+                    case "help":
+                        cli.help();
+                        break;
+                    case "exit":
+                        cli.exit();
+                        scanner.close();
+                        return;
+                    default:
+                        System.out.println("Unknown command: " + cmdName);
+                }
             }
+
             if (outputFile != null) {
                 cli.resetOutput(); // Reset System.out to console after command
             }
