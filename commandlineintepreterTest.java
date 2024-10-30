@@ -1,8 +1,9 @@
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
@@ -135,5 +136,172 @@ class commandlineintepreterTest {
         assertEquals("Redirected output test", fileContent,
                 "Output should be redirected to the specified file");
     }
+
+    @Test
+    void testAppendOutput() throws IOException {
+        String outputFileName = "appendOutput.txt";
+        File outputFile = new File(testDirectory, outputFileName);
+        // Execute the appendOutput method
+        cli.appendOutput(outputFileName);
+        System.out.println("AppendOutput test");
+        cli.resetOutput(); // Resetting the output to the original output stream
+
+        // Read the content of the output file
+        String fileContent = Files.readString(outputFile.toPath()).trim();
+        // Assert that the content of the output file is the correct output
+        assertEquals("AppendOutput test", fileContent, "Output should be appended to the specified file");
+    }
+
+    @Test
+    void testCatWithOneArgumentFileExists() throws IOException {
+        String filename = "file1.txt";
+        File testFile = new File(testDirectory, filename);
+        Files.writeString(testFile.toPath(), "Testing cat method");
+
+        String expectedOutput = "Testing cat method";
+        String actualOutput = getLatestSystemOutput(() -> cli.cat(new String[]{"cat", filename}));
+
+        assertEquals(expectedOutput, actualOutput, "cat should print the content of the file to the console");
+    }
+
+    @Test
+    void testCatWithNoArguments() {
+        String expectedOutput = "cat: Missing argument";
+        String actualOutput = getLatestSystemOutput(() -> cli.cat(new String[]{"cat"}));
+        assertEquals(expectedOutput, actualOutput, "cat with no arguments should print 'cat: Missing argument'");
+    }
+
+    @Test
+    void testCatWithOneArgumentFileNotExists() {
+        String filename = "nonExistentFile.txt";
+        String expectedErrorMessage = "cat: " + filename + " No such file or directory";
+        String actualOutput = getLatestSystemOutput(() -> cli.cat(new String[]{"cat", filename}));
+        assertEquals(expectedErrorMessage, actualOutput,
+                "cat should print an error message when the file does not exist");
+    }
+
+    @Test
+    void testCatWithTwoArgumentsTwoFiles() throws IOException {
+        String filename = "file1.txt";
+        String filename2 = "file2.txt";
+        File testFile = new File(testDirectory, filename);
+        File testFile2 = new File(testDirectory, filename2);
+        Files.writeString(testFile.toPath(), "File1");
+        Files.writeString(testFile2.toPath(), "File2");
+
+        String actualOutput = getLatestSystemOutput(() -> cli.cat(new String[]{"cat", filename, filename2}));
+
+        String expectedOutput = "File1\r\nFile2";
+        assertEquals(expectedOutput, actualOutput,
+                "cat -n should print the content of the two files to the console");
+    }
+
+    @Test
+    void testCatWithTwoArgumentsShowingLineNumbers() throws IOException {
+        //Text from the cat command is CRLF so I'm using \r\n
+        // we can use \n only (LF) and replace every \r\n in the actual output to \n
+        String filename = "file1.txt";
+        File testFile = new File(testDirectory, filename);
+        Files.writeString(testFile.toPath(), "Testing\r\ncat\r\nmethod");
+
+        cli.cat(new String[]{"cat", "-n", filename});
+
+        String expectedOutput = "1 Testing\r\n2 cat\r\n3 method";
+        String actualOutput = getLatestSystemOutput(() -> cli.cat(new String[]{"cat", "-n", filename}));
+        assertEquals(expectedOutput, actualOutput,
+                "cat -n should print the content of the file with line numbers");
+    }
+
+    @Test
+    void testCatWithFiveArgumentsConcatenateTwoFiles() throws IOException {
+        String file1Name = "file1.txt";
+        String file2Name = "file2.txt";
+        String outputFilename = "output.txt";
+        File file1 = new File(testDirectory, file1Name);
+        File file2 = new File(testDirectory, file2Name);
+        File outputFile = new File(testDirectory, outputFilename);
+        outputFile.createNewFile();
+
+        Files.writeString(file1.toPath(), "File 1 Content");
+        Files.writeString(file2.toPath(), "File 2 Content");
+        cli.cat(new String[]{"cat", file1Name, file2Name, ">", outputFilename});
+
+        String expectedOutput = "File 1 Content\nFile 2 Content";
+
+        assertEquals(expectedOutput, Files.readString(outputFile.toPath()),
+                "cat file1 file2 > output should concatenate the contents of file1 and file2 into output.txt");
+    }
+
+    @Test
+    void testAppendToFileWithInput() throws IOException {
+        String filename = "appendTestFile.txt";
+        File testFile = new File(testDirectory, filename);
+        Files.writeString(testFile.toPath(), "Existing content\n");
+
+        // Simulate the input text to append (replace "your appended text" with the actual content)
+        String simulatedInput = "First line to append\nSecond line to append\n";
+
+        // Simulate the input text to append by redirecting System.in
+        InputStream originalIn = System.in;
+        try (ByteArrayInputStream simulatedInputStream = new ByteArrayInputStream(simulatedInput.getBytes())) {
+            System.setIn(simulatedInputStream);
+            cli.cat(new String[]{"cat", ">>", filename}); // Assuming 'cat >> filename' is the command syntax
+        } finally {
+            System.setIn(originalIn); // Reset to the original System.in
+        }
+        // Read the contents of the file after appending
+        String fileContent = Files.readString(testFile.toPath());
+
+        // Expected content after appending
+        String expectedContent = "Existing content\nFirst line to append\nSecond line to append\n";
+
+        assertEquals(expectedContent, fileContent, "File content should match after appending input text");
+    }
+
+
+    private String getLatestSystemOutput(Runnable task) {
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outStream));
+
+        try {
+            task.run(); // Run the command line method that outputs to System.out
+        } finally {
+            System.setOut(originalOut); // Reset to the original System.out
+        }
+
+        return outStream.toString(StandardCharsets.UTF_8).trim();
+    }
+
+    @Test
+    void testTouchNewFile() {
+        // Given
+        String filename = "newfile.txt";
+
+        // When
+        cli.touch(filename);
+
+        // Then
+        File newFile = new File(testDirectory, filename);
+        assertTrue(newFile.exists(), "File should exist after touch command");
+        assertEquals(0, newFile.length(), "New file should be empty");
+    }
+
+    @Test
+    void testTouchExistingFile() throws IOException {
+        // Given
+        String filename = "existingfile.txt";
+        File existingFile = new File(testDirectory, filename);
+        Files.writeString(existingFile.toPath(), "Initial content");
+
+        // When
+        cli.touch(filename);
+
+        // Then
+        assertTrue(existingFile.exists(), "File should still exist after touch command");
+        assertEquals("Initial content", Files.readString(existingFile.toPath()),
+                "Existing file content should not be changed by touch command");
+    }
+
 }
 
