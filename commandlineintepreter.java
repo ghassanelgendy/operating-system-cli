@@ -115,7 +115,7 @@ public class commandlineintepreter {
     }
 
     public void touch(String filename) {
-        File file = new File(filename);
+        File file = new File(currentDirectory, filename);
         try {
             if (file.createNewFile()) {
                 System.out.println("File created: " + filename);
@@ -159,7 +159,7 @@ public class commandlineintepreter {
         }
         else if(cmnd.length == 2){
             String filename = cmnd[1];
-            File file = new File(filename);
+            File file = new File(currentDirectory, filename);
             if (file.exists()){
                 try (FileInputStream fis = new FileInputStream(file)) {
                     int data;
@@ -179,7 +179,7 @@ public class commandlineintepreter {
         else if (cmnd.length == 3){
             if (Objects.equals(cmnd[1], "-n")) {
                 String filename = cmnd[2];
-                File file = new File(filename);
+                File file = new File(currentDirectory, filename);
                 if (file.exists()) {
                     try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                         String line;
@@ -196,7 +196,7 @@ public class commandlineintepreter {
             }
             else if (Objects.equals(cmnd[1], ">>")){
                 String filename = cmnd[2];
-                File file = new File(filename);
+                File file = new File(currentDirectory, filename);
                 if (file.exists()){
                     try (FileOutputStream fos = new FileOutputStream(file, true)) {
                         System.out.println("Enter text to append (press Ctrl+D to finish):");
@@ -214,7 +214,7 @@ public class commandlineintepreter {
             }
             else if(Objects.equals(cmnd[1], ">")){
                 String filename = cmnd[2];
-                File file = new File(filename);
+                File file = new File(currentDirectory, filename);
                 try {
                     if (file.createNewFile()) {
                         System.out.println("File created: " + filename);
@@ -237,7 +237,7 @@ public class commandlineintepreter {
         else if(cmnd.length == 5){
             if(Objects.equals(cmnd[3], ">")){
             String firstname = cmnd[1], secondname = cmnd[2], thirdname = cmnd[4];
-            File file1 = new File(firstname), file2 = new File(secondname), file3 = new File(thirdname);
+            File file1 = new File(currentDirectory,firstname), file2 = new File(currentDirectory, secondname), file3 = new File(currentDirectory, thirdname);
             if (file1.exists() && file2.exists() && file3.exists()){
                 try(FileOutputStream fos = new FileOutputStream((file3))){
                     try(FileInputStream fis1 = new FileInputStream(file1)){
@@ -299,6 +299,18 @@ public class commandlineintepreter {
 
     public void appendOutput(String file) {
         // Used for >>
+        File outputFile = new File(currentDirectory, file);
+
+        try {
+            // Open file in append mode
+            PrintStream fileOut = new PrintStream(new FileOutputStream(outputFile, true));
+            System.out.println("Appending output to " + outputFile.getAbsolutePath());
+
+            // Redirect System.out to file for appending
+            System.setOut(fileOut);
+        } catch (IOException e) {
+            System.out.println("appendOutput: Unable to append to " + file + " - " + e.getMessage());
+        }
     }
 
     public void pipe(String command) {
