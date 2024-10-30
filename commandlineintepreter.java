@@ -315,22 +315,20 @@ public class commandlineintepreter {
 
     public void pipe(String command) {
         String[] parts = command.split(" ");
-        if (parts.length < 1) {
+        if (parts.length == 0) {
             System.out.println("pipe: Invalid command");
             return;
         }
 
         String commandToExecute = parts[0];
-        try {
-            Process process = Runtime.getRuntime().exec(commandToExecute);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-            process.waitFor();
-        } catch (IOException | InterruptedException e) {
-            System.out.println("pipe: " + e.getMessage());
+        String[] args = Arrays.copyOfRange(parts, 1, parts.length);
+
+        switch (commandToExecute) {
+            case "ls" -> ls(args);
+            case "pwd" -> pwd();
+            case "cat" -> cat(args);
+            case "help" -> help();
+            default -> System.out.println("pipe: Unsupported command '" + commandToExecute + "'");
         }
     }
 }
