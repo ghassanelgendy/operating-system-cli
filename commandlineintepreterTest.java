@@ -137,6 +137,7 @@ class commandlineintepreterTest {
                 "Output should be redirected to the specified file");
     }
 
+
     @Test
     void testAppendOutput() throws IOException {
         String outputFileName = "appendOutput.txt";
@@ -302,6 +303,73 @@ class commandlineintepreterTest {
         assertEquals("Initial content", Files.readString(existingFile.toPath()),
                 "Existing file content should not be changed by touch command");
     }
+    @Test
+    void testMkdirCreatesNewDirectory() {
+        String dirName = "newDir";
+        cli.mkdir(dirName);
+        File newDir = new File(testDirectory, dirName);
+        assertTrue(newDir.exists() && newDir.isDirectory(), "Directory should be created successfully");
+    }
+
+    @Test
+    void testMkdirExistingDirectory() {
+        String dirName = "existingDir";
+        File existingDir = new File(testDirectory, dirName);
+        existingDir.mkdir();
+
+        String expectedOutput = "mkdir: " + dirName + ": Failed to create directory or directory already exists";
+        String actualOutput = getLatestSystemOutput(() -> cli.mkdir(dirName));
+        assertEquals(expectedOutput, actualOutput, "Should notify that directory creation failed because it already exists");
+    }
+
+    @Test
+    void testRmdirRemovesEmptyDirectory() {
+        String dirName = "emptyDir";
+        File emptyDir = new File(testDirectory, dirName);
+        emptyDir.mkdir();
+        cli.rmdir(dirName);
+        assertFalse(emptyDir.exists(), "Directory should be removed successfully");
+    }
+
+    @Test
+    void testRmdirNonExistentDirectory() {
+        String dirName = "nonExistentDir";
+        String expectedOutput = "rmdir: " + dirName + ": No such directory";
+        String actualOutput = getLatestSystemOutput(() -> cli.rmdir(dirName));
+        assertEquals(expectedOutput, actualOutput, "Should notify that the directory does not exist");
+    }
+
+    @Test
+    void testRmdirNonEmptyDirectory() throws IOException {
+        String dirName = "nonEmptyDir";
+        File nonEmptyDir = new File(testDirectory, dirName);
+        nonEmptyDir.mkdir();
+        new File(nonEmptyDir, "fileInsideDir.txt").createNewFile();
+
+        String expectedOutput = "rmdir: " + dirName + ": Directory not empty";
+        String actualOutput = getLatestSystemOutput(() -> cli.rmdir(dirName));
+        assertEquals(expectedOutput, actualOutput, "Should notify that directory is not empty");
+        assertTrue(nonEmptyDir.exists(), "Directory should not be removed if it is not empty");
+    }
+
+    @Test
+    void testRmRemovesFile() throws IOException {
+        String fileName = "fileToRemove.txt";
+        File fileToRemove = new File(testDirectory, fileName);
+        fileToRemove.createNewFile();
+        cli.rm(fileName);
+        assertFalse(fileToRemove.exists(), "File should be removed successfully");
+    }
+
+    @Test
+    void testRmNonExistentFile() {
+        String fileName = "nonExistentFile.txt";
+        String expectedOutput = "rm: " + fileName + ": No such file";
+        String actualOutput = getLatestSystemOutput(() -> cli.rm(fileName));
+        assertEquals(expectedOutput, actualOutput, "Should notify that the file does not exist");
+    }
 
 }
+
+
 
