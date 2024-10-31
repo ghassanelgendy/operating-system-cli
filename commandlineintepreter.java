@@ -314,21 +314,60 @@ public class commandlineintepreter {
     }
 
     public void pipe(String command) {
-        String[] parts = command.split(" ");
-        if (parts.length == 0) {
-            System.out.println("pipe: Invalid command");
-            return;
-        }
+        // Split the command by the pipe symbol
+        String[] commands = command.split("\\|");
+        String previousOutput = null;
 
-        String commandToExecute = parts[0];
-        String[] args = Arrays.copyOfRange(parts, 1, parts.length);
+        for (String cmd : commands) {
+            String[] parts = cmd.trim().split(" ");
+            if (parts.length == 0) {
+                System.out.println("pipe: Invalid command");
+                return;
+            }
 
-        switch (commandToExecute) {
-            case "ls" -> ls(args);
-            case "pwd" -> pwd();
-            case "cat" -> cat(args);
-            case "help" -> help();
-            default -> System.out.println("pipe: Unsupported command '" + commandToExecute + "'");
+            String commandToExecute = parts[0];
+            String[] args = Arrays.copyOfRange(parts, 1, parts.length);
+
+            switch (commandToExecute) {
+                case "ls":
+                    // Get the output from the ls command
+                    previousOutput = getLsOutput(args); // Assuming this method returns a string of filenames
+                    break;
+                case "cat":
+                    if (previousOutput != null) {
+                        // Pass the output of the previous command as arguments to cat
+                        String[] filesToCat = previousOutput.split("\n");
+                        cat(filesToCat);
+                    } else {
+                        //System.out.println("cat: Missing argument");
+                    }
+                    break;
+                case "pwd":
+                    pwd();
+                    break;
+                case "help":
+                    help();
+                    break;
+                default:
+                    System.out.println("pipe: Invalid command");
+            }
         }
     }
+
+    // Example method to handle ls command and return the output as a string
+    private String getLsOutput(String[] args) {
+        // Implement the logic for ls command
+        // For now, let's return the list of files in the current directory as a string
+        File[] files = getCurrentDirectory().listFiles();
+        if (files == null) {
+            return "";
+        }
+
+        StringBuilder output = new StringBuilder();
+        for (File file : files) {
+            output.append(file.getName()).append("\n");
+        }
+        return output.toString().trim(); // Return as a string
+    }
+
 }

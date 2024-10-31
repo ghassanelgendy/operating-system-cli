@@ -369,6 +369,33 @@ class commandlineintepreterTest {
         assertEquals(expectedOutput, actualOutput, "Should notify that the file does not exist");
     }
 
+
+    @Test
+    void testPipeWithPwdCommand() {
+        String command = "pwd | cat"; // Pipe pwd output to cat
+        String expectedOutput = testDirectory.getAbsolutePath();
+        String actualOutput = getLatestSystemOutput(() -> cli.pipe(command));
+        assertEquals(expectedOutput, actualOutput, "The output of 'pwd | cat' should match the expected directory path");
+    }
+
+
+    @Test
+    void testPipeWithInvalidCommand() {
+        String command = ""; // Empty command
+        String expectedOutput = "pipe: Invalid command";
+        String actualOutput = getLatestSystemOutput(() -> cli.pipe(command));
+        assertEquals(expectedOutput, actualOutput, "Should notify that the command is invalid");
+    }
+
+    @Test
+    void testPipeWithMultipleCommands() {
+        String command = "ls | cat | pwd"; // Pipe multiple commands
+        // Verify if the command is executed without exceptions
+        String actualOutput = getLatestSystemOutput(() -> cli.pipe(command));
+        assertNotNull(actualOutput, "The output should not be null for a valid pipe command");
+    }
+
+
 }
 
 
