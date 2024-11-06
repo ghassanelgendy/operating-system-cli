@@ -100,7 +100,7 @@ public class commandlineintepreter {
     }
 
     public void mkdir(String dir) {
-        File newDir = new File(currentDirectory, dir);
+        File newDir = new File(currentDirectory, dir); // (elfile nafso, el file name)
         if (newDir.mkdir()) {
             System.out.println("Directory created: " + newDir.getAbsolutePath());
         } else {
@@ -110,8 +110,8 @@ public class commandlineintepreter {
 
     public void rmdir(String dir) {
         File dirToRemove = new File(currentDirectory, dir);
-        if (dirToRemove.exists() && dirToRemove.isDirectory()) {
-            if (dirToRemove.list().length == 0) {
+        if (dirToRemove.exists() && dirToRemove.isDirectory()) { // 2nd condition checks if it's a directory not a file
+            if (dirToRemove.list().length == 0) { // checks if the directory is empty
                 if (dirToRemove.delete()) {
                     System.out.println("Directory removed: " + dirToRemove.getAbsolutePath());
                 } else {
