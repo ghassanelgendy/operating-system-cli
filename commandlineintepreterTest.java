@@ -71,7 +71,7 @@ class commandlineintepreterTest {
         String[] actualFiles = testDirectory.list();
 
         assertNotNull(actualFiles, "Directory should not be null");
-
+        //assertIterableEquals();
         assertTrue(Arrays.asList(actualFiles).containsAll(expectedFiles),
                 "Output should include all expected files, including hidden ones");
     }
